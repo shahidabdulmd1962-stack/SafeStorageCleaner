@@ -1,24 +1,28 @@
 package com.safestoragecleaner
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.safestoragecleaner.adapter.FileAdapter
 import com.safestoragecleaner.model.FileItem
+import com.safestoragecleaner.scanner.JunkScanner
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-
     private lateinit var adapter: FileAdapter
 
     private lateinit var btnScan: Button
-
     private lateinit var btnDelete: Button
-
     private lateinit var txtTotalSize: TextView
 
     private val fileList =
@@ -55,39 +59,72 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter =
             adapter
 
+        checkPermission()
+
         btnScan.setOnClickListener {
 
-            fileList.clear()
-
-            fileList.add(
-                FileItem(
-                    "temp.log",
-                    "/storage/temp.log",
-                    1050000
-                )
-            )
-
-            fileList.add(
-                FileItem(
-                    "cache.tmp",
-                    "/storage/cache.tmp",
-                    2097152
-                )
-            )
-
-            adapter.notifyDataSetChanged()
-
-            txtTotalSize.text =
-                "Junk Size: 3 MB"
+            startScan()
         }
+    }
 
-        btnDelete.setOnClickListener {
+    private fun checkPermission() {
 
-            fileList.removeAll {
-                it.selected
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
+                100
+            )
+        }
+    }
+
+    private fun startScan() {
+
+        fileList.clear()
+
+        val root: File =
+            Environment.getExternalStorageDirectory()
+
+        val scanner =
+            JunkScanner()
+
+        val result =
+            scanner.scanStorage(root)
+
+        fileList.addAll(result)
+
+        adapter.notifyDataSetChanged()
+
+        val totalBytes =
+            fileList.sumOf {
+                it.size
             }
 
-            adapter.notifyDataSetChanged()
-        }
+        txtTotalSize.text =
+            "Junk Size: ${
+                formatSize(totalBytes)
+            }"
+    }
+
+    private fun formatSize(
+        bytes: Long
+    ): String {
+
+        val mb =
+            bytes / 1024.0 / 1024.0
+
+        return String.format(
+            "%.2f MB",
+            mb
+        )
     }
 }
