@@ -89,6 +89,11 @@ btnPickFolder.setOnClickListener {
 }
         btnScan.setOnClickListener {
 btnDelete.setOnClickListener {
+val cacheCleaner =
+    CacheCleaner()
+
+val success =
+    cacheCleaner.clearAppCache(this)
 
     var deletedCount = 0
 
