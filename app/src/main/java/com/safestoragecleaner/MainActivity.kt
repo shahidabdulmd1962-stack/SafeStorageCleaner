@@ -69,7 +69,16 @@ btnPickFolder =
             adapter
 
         checkPermission()
+btnPickFolder.setOnClickListener {
 
+    val intent =
+        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+
+    startActivityForResult(
+        intent,
+        PICK_FOLDER
+    )
+}
         btnScan.setOnClickListener {
 btnDelete.setOnClickListener {
 
