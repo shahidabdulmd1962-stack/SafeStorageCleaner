@@ -4,4 +4,12 @@
         Safe Storage Cleaner
     </string>
 
+    <string name="scan">
+        Scan Files
+    </string>
+
+    <string name="delete">
+        Delete Selected
+    </string>
+
 </resources>
