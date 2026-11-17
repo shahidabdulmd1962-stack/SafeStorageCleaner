@@ -15,7 +15,8 @@ import com.safestoragecleaner.adapter.FileAdapter
 import com.safestoragecleaner.model.FileItem
 import com.safestoragecleaner.scanner.JunkScanner
 import java.io.File
-
+import android.widget.Toast
+import com.safestoragecleaner.cleaner.JunkCleaner
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
