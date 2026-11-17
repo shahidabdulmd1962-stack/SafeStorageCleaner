@@ -1,62 +1,59 @@
 package com.safestoragecleaner
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.safestoragecleaner.cleaner.CacheCleaner
+import androidx.documentfile.provider.DocumentFile
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.safestoragecleaner.adapter.FileAdapter
+import com.safestoragecleaner.cleaner.CacheCleaner
+import com.safestoragecleaner.cleaner.JunkCleaner
+import com.safestoragecleaner.cleaner.SafCleaner
 import com.safestoragecleaner.model.FileItem
 import com.safestoragecleaner.scanner.JunkScanner
-import java.io.File
-import android.widget.Toast
-import com.safestoragecleaner.cleaner.JunkCleaner
-import android.content.Intent
-import android.net.Uri
-import com.safestoragecleaner.cleaner.SafCleaner
-import androidx.documentfile.provider.DocumentFile
 import com.safestoragecleaner.scanner.SafScanner
-import android.provider.DocumentsContract
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FileAdapter
+
     private lateinit var btnPickFolder: Button
-
-private var selectedFolderUri: Uri? = null
-
-private val PICK_FOLDER = 200
     private lateinit var btnScan: Button
     private lateinit var btnDelete: Button
+
     private lateinit var txtTotalSize: TextView
 
-    private val fileList =
-        mutableListOf<FileItem>()
-        private var safMode = false
-    private val safFiles =
-    mutableListOf<DocumentFile>()
+    private val fileList = mutableListOf<FileItem>()
 
+    private val safFiles =
+        mutableListOf<DocumentFile>()
+
+    private var selectedFolderUri: Uri? = null
+
+    private var safMode = false
+
+    private val PICK_FOLDER = 200
 
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
 
         super.onCreate(savedInstanceState)
-btnPickFolder =
-    findViewById(R.id.btnPickFolder)
-        setContentView(
-            R.layout.activity_main
-        )
 
-        recyclerView =
-            findViewById(R.id.recyclerFiles)
+        setContentView(R.layout.activity_main)
+
+        btnPickFolder =
+            findViewById(R.id.btnPickFolder)
 
         btnScan =
             findViewById(R.id.btnScan)
@@ -66,6 +63,9 @@ btnPickFolder =
 
         txtTotalSize =
             findViewById(R.id.txtTotalSize)
+
+        recyclerView =
+            findViewById(R.id.recyclerFiles)
 
         adapter =
             FileAdapter(fileList)
@@ -77,149 +77,109 @@ btnPickFolder =
             adapter
 
         checkPermission()
-btnPickFolder.setOnClickListener {
 
-    val intent =
-        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        btnPickFolder.setOnClickListener {
 
-    startActivityForResult(
-        intent,
-        PICK_FOLDER
-    )
-}
-        btnScan.setOnClickListener {
-btnDelete.setOnClickListener {
-val cacheCleaner =
-    CacheCleaner()
+            val intent =
+                Intent(
+                    Intent.ACTION_OPEN_DOCUMENT_TREE
+                )
 
-val success =
-    cacheCleaner.clearAppCache(this)
-
-    var deletedCount = 0
-
-    if (safMode) {
-
-        val cleaner =
-            SafCleaner()
-
-        safFiles.forEach {
-
-            val matched =
-                fileList.find { item ->
-                    item.path ==
-                    it.uri.toString()
-                    &&
-                    item.selected
-                }
-
-            if (matched != null) {
-
-                if (
-                    cleaner.deleteFile(it)
-                ) {
-                    deletedCount++
-                }
-            }
+            startActivityForResult(
+                intent,
+                PICK_FOLDER
+            )
         }
 
-    } else {
+        btnScan.setOnClickListener {
 
-        val cleaner =
-            JunkCleaner()
+            startScan()
+        }
 
-        val selectedFiles =
-            fileList.filter {
+        btnDelete.setOnClickListener {
+
+            val cacheCleaner =
+                CacheCleaner()
+
+            cacheCleaner.clearAppCache(this)
+
+            var deletedCount = 0
+
+            if (safMode) {
+
+                val cleaner =
+                    SafCleaner()
+
+                safFiles.forEach {
+
+                    val selected =
+                        fileList.find { item ->
+                            item.path ==
+                                    it.uri.toString() &&
+                                    item.selected
+                        }
+
+                    if (selected != null) {
+
+                        if (
+                            cleaner.deleteFile(it)
+                        ) {
+                            deletedCount++
+                        }
+                    }
+                }
+
+            } else {
+
+                val cleaner =
+                    JunkCleaner()
+
+                fileList.forEach {
+
+                    if (it.selected) {
+
+                        if (
+                            cleaner.deleteFile(
+                                it.path
+                            )
+                        ) {
+                            deletedCount++
+                        }
+                    }
+                }
+            }
+
+            fileList.removeAll {
                 it.selected
             }
 
-        selectedFiles.forEach {
+            adapter.notifyDataSetChanged()
 
-            if (
-                cleaner.deleteFile(
-                    it.path
-                )
-            ) {
-                deletedCount++
-            }
+            Toast.makeText(
+                this,
+                "$deletedCount file(s) deleted",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
-    fileList.removeAll {
-        it.selected
-    }
+    private fun checkPermission() {
 
-    adapter.notifyDataSetChanged()
-
-    Toast.makeText(
-        this,
-        "$deletedCount file(s) deleted",
-        Toast.LENGTH_LONG
-    ).show()
-}
-    }
-
-  private fun startScan() {
-
-    fileList.clear()
-
-if (
-    safMode &&
-    selectedFolderUri != null
-) {
-
-    safFiles.clear()
-
-    val root =
-        DocumentFile.fromTreeUri(
-            this,
-            selectedFolderUri!!
-        )
-
-    if (root != null) {
-
-        val scanner =
-            SafScanner()
-
-        val files =
-            scanner.scan(root)
-
-        safFiles.addAll(files)
-
-        files.forEach {
-
-            fileList.add(
-                FileItem(
-                    name =
-                        it.name ?: "Unknown",
-
-                    path =
-                        it.uri.toString(),
-
-                    size = 0
-                )
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
             )
-        }
-    }
-}
-    } else {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
 
-        val scanner =
-            JunkScanner()
-
-        val files =
-            scanner.scanStorage(
-                android.os.Environment
-                    .getExternalStorageDirectory()
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
+                100
             )
-
-        fileList.addAll(files)
-    }
-
-    adapter.notifyDataSetChanged()
-
-    txtTotalSize.text =
-        "Found ${fileList.size} junk files"
-}
         }
     }
 
@@ -227,73 +187,96 @@ if (
 
         fileList.clear()
 
-        val root: File =
-            Environment.getExternalStorageDirectory()
+        if (
+            safMode &&
+            selectedFolderUri != null
+        ) {
 
-        val scanner =
-            JunkScanner()
+            safFiles.clear()
 
-        val result =
-            scanner.scanStorage(root)
+            val root =
+                DocumentFile.fromTreeUri(
+                    this,
+                    selectedFolderUri!!
+                )
 
-        fileList.addAll(result)
+            if (root != null) {
+
+                val scanner =
+                    SafScanner()
+
+                val files =
+                    scanner.scan(root)
+
+                safFiles.addAll(files)
+
+                files.forEach {
+
+                    fileList.add(
+                        FileItem(
+                            name =
+                                it.name ?: "Unknown",
+                            path =
+                                it.uri.toString(),
+                            size = 0
+                        )
+                    )
+                }
+            }
+
+        } else {
+
+            val scanner =
+                JunkScanner()
+
+            val files =
+                scanner.scanStorage(
+                    android.os.Environment
+                        .getExternalStorageDirectory()
+                )
+
+            fileList.addAll(files)
+        }
 
         adapter.notifyDataSetChanged()
 
-        val totalBytes =
-            fileList.sumOf {
-                it.size
-            }
-
         txtTotalSize.text =
-            "Junk Size: ${
-                formatSize(totalBytes)
-            }"
+            "Found ${fileList.size} junk files"
     }
 
-    private fun formatSize(
-        bytes: Long
-    ): String {
-
-        val mb =
-            bytes / 1024.0 / 1024.0
-
-        return String.format(
-            "%.2f MB",
-            mb
-        )
-    }
-override fun onActivityResult(
-    requestCode: Int,
-    resultCode: Int,
-    data: Intent?
-) {
-
-    super.onActivityResult(
-        requestCode,
-        resultCode,
-        data
-    )
-
-    if (
-        requestCode == PICK_FOLDER &&
-        data != null
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
     ) {
 
-        selectedFolderUri =
-            data.data
-        safMode = true
-
-        contentResolver.takePersistableUriPermission(
-            selectedFolderUri!!,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        super.onActivityResult(
+            requestCode,
+            resultCode,
+            data
         )
 
-        Toast.makeText(
-            this,
-            "Folder Selected",
-            Toast.LENGTH_SHORT
-        ).show()
+        if (
+            requestCode == PICK_FOLDER &&
+            data != null
+        ) {
+
+            selectedFolderUri =
+                data.data
+
+            safMode = true
+
+            contentResolver
+                .takePersistableUriPermission(
+                    selectedFolderUri!!,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+            Toast.makeText(
+                this,
+                "Folder Selected",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
-}    
 }
