@@ -19,5 +19,8 @@
     <string name="select_folder">
         Select Folder
     </string>
+    <string name="folder_selected">
+    Folder Selected
+    </string>
 
 </resources>
