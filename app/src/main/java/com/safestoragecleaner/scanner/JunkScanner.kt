@@ -6,11 +6,13 @@ import java.io.File
 class JunkScanner {
 
     private val junkExtensions = listOf(
-        ".tmp",
-        ".temp",
-        ".log",
-        ".bak"
-    )
+    ".tmp",
+    ".temp",
+    ".log",
+    ".bak",
+    ".old",
+    ".cache"
+)
 
     fun scanStorage(
         root: File
