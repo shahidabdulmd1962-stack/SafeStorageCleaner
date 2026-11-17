@@ -63,7 +63,41 @@ class MainActivity : AppCompatActivity() {
         checkPermission()
 
         btnScan.setOnClickListener {
+btnDelete.setOnClickListener {
 
+    val cleaner =
+        JunkCleaner()
+
+    val selectedFiles =
+        fileList.filter {
+            it.selected
+        }
+
+    var deletedCount = 0
+
+    selectedFiles.forEach {
+
+        if (
+            cleaner.deleteFile(
+                it.path
+            )
+        ) {
+            deletedCount++
+        }
+    }
+
+    fileList.removeAll {
+        it.selected
+    }
+
+    adapter.notifyDataSetChanged()
+
+    Toast.makeText(
+        this,
+        "$deletedCount file(s) deleted",
+        Toast.LENGTH_LONG
+    ).show()
+}
             startScan()
         }
     }
