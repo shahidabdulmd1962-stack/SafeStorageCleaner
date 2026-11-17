@@ -24,7 +24,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FileAdapter
+    private lateinit var btnPickFolder: Button
 
+private var selectedFolderUri: Uri? = null
+
+private val PICK_FOLDER = 200
     private lateinit var btnScan: Button
     private lateinit var btnDelete: Button
     private lateinit var txtTotalSize: TextView
