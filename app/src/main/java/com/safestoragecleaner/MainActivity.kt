@@ -89,24 +89,52 @@ btnPickFolder.setOnClickListener {
         btnScan.setOnClickListener {
 btnDelete.setOnClickListener {
 
-    val cleaner =
-        JunkCleaner()
-
-    val selectedFiles =
-        fileList.filter {
-            it.selected
-        }
-
     var deletedCount = 0
 
-    selectedFiles.forEach {
+    if (safMode) {
 
-        if (
-            cleaner.deleteFile(
-                it.path
-            )
-        ) {
-            deletedCount++
+        val cleaner =
+            SafCleaner()
+
+        safFiles.forEach {
+
+            val matched =
+                fileList.find { item ->
+                    item.path ==
+                    it.uri.toString()
+                    &&
+                    item.selected
+                }
+
+            if (matched != null) {
+
+                if (
+                    cleaner.deleteFile(it)
+                ) {
+                    deletedCount++
+                }
+            }
+        }
+
+    } else {
+
+        val cleaner =
+            JunkCleaner()
+
+        val selectedFiles =
+            fileList.filter {
+                it.selected
+            }
+
+        selectedFiles.forEach {
+
+            if (
+                cleaner.deleteFile(
+                    it.path
+                )
+            ) {
+                deletedCount++
+            }
         }
     }
 
@@ -122,8 +150,6 @@ btnDelete.setOnClickListener {
         Toast.LENGTH_LONG
     ).show()
 }
-            startScan()
-        }
     }
 
   private fun startScan() {
