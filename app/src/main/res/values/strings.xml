@@ -12,4 +12,8 @@
         Delete Selected
     </string>
 
+    <string name="junk_size">
+        Junk Size
+    </string>
+
 </resources>
