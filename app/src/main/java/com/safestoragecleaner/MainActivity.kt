@@ -41,7 +41,8 @@ private val PICK_FOLDER = 200
     ) {
 
         super.onCreate(savedInstanceState)
-
+btnPickFolder =
+    findViewById(R.id.btnPickFolder)
         setContentView(
             R.layout.activity_main
         )
