@@ -130,41 +130,45 @@ btnDelete.setOnClickListener {
 
     fileList.clear()
 
-    if (
-        safMode &&
-        selectedFolderUri != null
-    ) {
+if (
+    safMode &&
+    selectedFolderUri != null
+) {
 
-        val root =
-            DocumentFile.fromTreeUri(
-                this,
-                selectedFolderUri!!
-            )
+    safFiles.clear()
 
-        if (root != null) {
+    val root =
+        DocumentFile.fromTreeUri(
+            this,
+            selectedFolderUri!!
+        )
 
-            val scanner =
-                SafScanner()
+    if (root != null) {
 
-            val files =
-                scanner.scan(root)
+        val scanner =
+            SafScanner()
 
-            files.forEach {
+        val files =
+            scanner.scan(root)
 
-                fileList.add(
-                    FileItem(
-                        name =
-                            it.name ?: "Unknown",
+        safFiles.addAll(files)
 
-                        path =
-                            it.uri.toString(),
+        files.forEach {
 
-                        size = 0
-                    )
+            fileList.add(
+                FileItem(
+                    name =
+                        it.name ?: "Unknown",
+
+                    path =
+                        it.uri.toString(),
+
+                    size = 0
                 )
-            }
+            )
         }
-
+    }
+}
     } else {
 
         val scanner =
