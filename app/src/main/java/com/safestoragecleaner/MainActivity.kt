@@ -201,6 +201,7 @@ override fun onActivityResult(
 
         selectedFolderUri =
             data.data
+        safMode = true
 
         contentResolver.takePersistableUriPermission(
             selectedFolderUri!!,
