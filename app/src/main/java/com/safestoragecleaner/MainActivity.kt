@@ -122,23 +122,64 @@ btnDelete.setOnClickListener {
         }
     }
 
-    private fun checkPermission() {
+  private fun startScan() {
 
-        if (
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
+    fileList.clear()
 
-            ActivityCompat.requestPermissions(
+    if (
+        safMode &&
+        selectedFolderUri != null
+    ) {
+
+        val root =
+            DocumentFile.fromTreeUri(
                 this,
-                arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
-                100
+                selectedFolderUri!!
             )
+
+        if (root != null) {
+
+            val scanner =
+                SafScanner()
+
+            val files =
+                scanner.scan(root)
+
+            files.forEach {
+
+                fileList.add(
+                    FileItem(
+                        name =
+                            it.name ?: "Unknown",
+
+                        path =
+                            it.uri.toString(),
+
+                        size = 0
+                    )
+                )
+            }
+        }
+
+    } else {
+
+        val scanner =
+            JunkScanner()
+
+        val files =
+            scanner.scanStorage(
+                android.os.Environment
+                    .getExternalStorageDirectory()
+            )
+
+        fileList.addAll(files)
+    }
+
+    adapter.notifyDataSetChanged()
+
+    txtTotalSize.text =
+        "Found ${fileList.size} junk files"
+}
         }
     }
 
