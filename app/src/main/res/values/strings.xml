@@ -3,6 +3,9 @@
     <string name="app_name">
         Safe Storage Cleaner
     </string>
+    <string name="deleted">
+    Files Deleted
+    </string>
 
     <string name="scan">
         Scan Files
