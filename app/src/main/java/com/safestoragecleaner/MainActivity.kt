@@ -19,6 +19,8 @@ import android.widget.Toast
 import com.safestoragecleaner.cleaner.JunkCleaner
 import android.content.Intent
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
+import com.safestoragecleaner.scanner.SafScanner
 import android.provider.DocumentsContract
 class MainActivity : AppCompatActivity() {
 
