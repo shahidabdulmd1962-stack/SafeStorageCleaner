@@ -179,4 +179,36 @@ btnDelete.setOnClickListener {
             mb
         )
     }
+override fun onActivityResult(
+    requestCode: Int,
+    resultCode: Int,
+    data: Intent?
+) {
+
+    super.onActivityResult(
+        requestCode,
+        resultCode,
+        data
+    )
+
+    if (
+        requestCode == PICK_FOLDER &&
+        data != null
+    ) {
+
+        selectedFolderUri =
+            data.data
+
+        contentResolver.takePersistableUriPermission(
+            selectedFolderUri!!,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        Toast.makeText(
+            this,
+            "Folder Selected",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}    
 }
