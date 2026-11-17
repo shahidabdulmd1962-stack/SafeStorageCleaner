@@ -37,6 +37,7 @@ private val PICK_FOLDER = 200
 
     private val fileList =
         mutableListOf<FileItem>()
+        private var safMode = false
 
     override fun onCreate(
         savedInstanceState: Bundle?
